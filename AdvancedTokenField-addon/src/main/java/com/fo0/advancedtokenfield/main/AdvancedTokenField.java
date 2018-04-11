@@ -1,15 +1,5 @@
 package com.fo0.advancedtokenfield.main;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.alump.searchdropdown.SearchDropDown;
-
 import com.fo0.advancedtokenfield.interceptor.TokenAddInterceptor;
 import com.fo0.advancedtokenfield.interceptor.TokenNewItemInterceptor;
 import com.fo0.advancedtokenfield.interceptor.TokenRemoveInterceptor;
@@ -18,26 +8,28 @@ import com.fo0.advancedtokenfield.listener.TokenAddListener;
 import com.fo0.advancedtokenfield.listener.TokenRemoveListener;
 import com.fo0.advancedtokenfield.model.Token;
 import com.fo0.advancedtokenfield.model.TokenLayout;
-import com.fo0.advancedtokenfield.model.TokenSuggestionProvider;
+import com.vaadin.data.HasValue;
 import com.vaadin.shared.Registration;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.themes.ValoTheme;
-
 import fi.jasoft.dragdroplayouts.DDCssLayout;
-import fi.jasoft.dragdroplayouts.client.ui.LayoutDragMode;
-import fi.jasoft.dragdroplayouts.drophandlers.DefaultCssLayoutDropHandler;
-import fi.jasoft.dragdroplayouts.interfaces.DragFilter;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class AdvancedTokenField extends DDCssLayout {
 
 	private static final long serialVersionUID = 8139678186130686248L;
 
-	private SearchDropDown<Token> inputField = null;
-	private TokenSuggestionProvider suggestionProvider;
+	private ComboBox<Token> inputField = null;
 
-	private List<Token> tokensOfField = new ArrayList<Token>();
-	private List<Token> initTokensOfField = new ArrayList<Token>();
+	private List<Token> tokensOfField = new ArrayList<>();
 
 	/**
 	 * Interceptors
@@ -56,25 +48,24 @@ public class AdvancedTokenField extends DDCssLayout {
 
 	private boolean allowNewTokens = false;
 	private boolean allowEmptyValues = false;
-	private boolean removeInitTokens = false;
 	private boolean tokenCloseButton = true;
-	private int querySuggestionInputMinLength = 2;
 
 	private static final String BASE_STYLE = "advancedtokenfield-layouttokens";
 
+	public AdvancedTokenField(String caption) {
+		this(caption, null);
+	}
+
 	public AdvancedTokenField(List<Token> tokens) {
-		this(tokens, true);
+		this(null, tokens);
 	}
 
-	public AdvancedTokenField(boolean inputFieldVisible) {
-		this(null, inputFieldVisible);
-	}
-
-	public AdvancedTokenField(List<Token> tokens, boolean inputFieldVisible) {
+	public AdvancedTokenField(String caption, List<Token> tokens) {
 		if (tokens != null && !tokens.isEmpty())
 			this.tokensOfField.addAll(tokens);
 		init();
-		inputField.setVisible(inputFieldVisible);
+		if(caption != null)
+			inputField.setCaption(caption);
 	}
 
 	public AdvancedTokenField() {
@@ -84,46 +75,23 @@ public class AdvancedTokenField extends DDCssLayout {
 	private void init() {
 		addStyleName(BASE_STYLE);
 
-		suggestionProvider = new TokenSuggestionProvider(tokensOfField, querySuggestionInputMinLength);
-		inputField = new SearchDropDown<Token>(suggestionProvider);
-		inputField.addStyleName(ValoTheme.TEXTFIELD_BORDERLESS);
-		inputField.addSearchListener(search -> {
-			String input = search.getSource().getValue().trim();
-			if (StringUtils.isEmpty(input)) {
-				return;
-			}
+		inputField = new ComboBox<>();
 
-			if (!allowNewTokens) {
-				Token token = tokensOfField.stream().filter(e -> e.getValue().equals(input)).findFirst().orElse(null);
+		inputField.setItemCaptionGenerator(Token::getValue);
+		inputField.setItems(tokensOfField);
 
-				if (token != null)
-					addToken(token);
-			} else {
-				Token token = tokensOfField.stream().filter(e -> e.getValue().equals(input)).findFirst().orElse(null);
 
-				if (token != null) {
-					addToken(token);
-				} else {
-					token = tokenNewItemInterceptor.action(new Token(input));
+		inputField.addValueChangeListener(new HasValue.ValueChangeListener<Token>() {
+			@Override
+			public void valueChange(HasValue.ValueChangeEvent<Token> event) {
+				if(event.getValue() != null) {
+					Token token = event.getValue();
 					addToken(token);
 				}
 			}
 		});
 
 		addComponent(inputField);
-		setDragMode(LayoutDragMode.CLONE);
-
-		// Enable dropping
-		setDropHandler(new DefaultCssLayoutDropHandler());
-
-		// Only allow draggin buttons
-		setDragFilter(new DragFilter() {
-			private static final long serialVersionUID = 5221913366037820701L;
-
-			public boolean isDraggable(Component component) {
-				return component instanceof TokenLayout;
-			}
-		});
 
 		tokenAddInterceptor = new TokenAddInterceptor() {
 
@@ -148,22 +116,6 @@ public class AdvancedTokenField extends DDCssLayout {
 				return token;
 			}
 		};
-
-		copyInputfieldTokensToInitTokens();
-	}
-
-	protected void copyInputfieldTokensToInitTokens() {
-		initTokensOfField.clear();
-		initTokensOfField.addAll(tokensOfField);
-	}
-
-	public void setRemoveInitTokens(boolean remove) {
-		this.removeInitTokens = remove;
-	}
-
-	public void setQuerySuggestionInputMinLength(int minLength) {
-		this.querySuggestionInputMinLength = minLength;
-		suggestionProvider.setQuerySuggestionInputMinLength(querySuggestionInputMinLength);
 	}
 
 	public void setAllowNewItems(boolean allow) {
@@ -244,7 +196,7 @@ public class AdvancedTokenField extends DDCssLayout {
 		// search in layout and remove if found
 		TokenLayout tl = null;
 		for (Iterator<Component> iterator = iterator(); iterator.hasNext();) {
-			Component component = (Component) iterator.next();
+			Component component = iterator.next();
 			if (component instanceof TokenLayout) {
 				if (((TokenLayout) component).getToken().equals(token)) {
 					tl = (TokenLayout) component;
@@ -261,13 +213,9 @@ public class AdvancedTokenField extends DDCssLayout {
 			tokenRemoveListener.action(tl);
 		}
 
-		if (removeInitTokens || !initTokensOfField.contains(tokenData)) {
-			System.out.println("remove init tokens: " + removeInitTokens);
-			System.out.println("in  init token: "
-					+ initTokensOfField.stream().anyMatch(e -> e.getValue().equals(tokenData.getValue())));
-			System.out.println("removing token: " + tokenData);
-			tokensOfField.remove(tokenData);
-		}
+		tokensOfField.add(token);
+		Collections.sort(tokensOfField);
+		inputField.setItems(tokensOfField);
 	}
 
 	public void addToken(Token token, int idx) {
@@ -297,17 +245,19 @@ public class AdvancedTokenField extends DDCssLayout {
 			tokenAddListener.action(tokenData);
 
 		inputField.clear();
+		tokensOfField.remove(token);
+		inputField.setItems(tokensOfField);
 	}
 
 	public void addToken(Token token) {
-		addToken(token, -1);
+		addToken(token, getComponentCount());
 	}
 
 	public void addTokens(List<Token> token) {
-		token.stream().forEach(e -> addToken(e));
+		token.forEach(this::addToken);
 	}
 
-	public SearchDropDown<Token> getInputField() {
+	public ComboBox<Token> getInputField() {
 		return inputField;
 	}
 
@@ -316,7 +266,7 @@ public class AdvancedTokenField extends DDCssLayout {
 	}
 
 	public List<Token> getTokens() {
-		List<Token> list = new ArrayList<Token>();
+		List<Token> list = new ArrayList<>();
 		for (int i = 0; i < getComponentCount(); i++) {
 			if (getComponent(i) instanceof CssLayout) {
 				CssLayout c = (CssLayout) getComponent(i);
@@ -331,7 +281,7 @@ public class AdvancedTokenField extends DDCssLayout {
 		if (tokens == null || tokens.isEmpty())
 			return;
 
-		addTokensToInputField(tokens.stream().toArray(Token[]::new));
+		addTokensToInputField(tokens.toArray(new Token[0]));
 	}
 
 	public void addTokensToInputField(Token... tokens) {
@@ -341,8 +291,6 @@ public class AdvancedTokenField extends DDCssLayout {
 			return;
 
 		tokensOfField.addAll(list);
-
-		copyInputfieldTokensToInitTokens();
 	}
 
 	public void addTokenToInputField(Token token) {
@@ -350,7 +298,7 @@ public class AdvancedTokenField extends DDCssLayout {
 	}
 
 	public void clearTokens() {
-		List<Component> componentsToRemove = new ArrayList<Component>();
+		List<Component> componentsToRemove = new ArrayList<>();
 
 		IntStream.range(0, getComponentCount()).forEach(e -> {
 			if (getComponent(e) instanceof CssLayout) {
@@ -358,9 +306,7 @@ public class AdvancedTokenField extends DDCssLayout {
 			}
 		});
 
-		componentsToRemove.stream().forEach(e -> {
-			removeComponent(e);
-		});
+		componentsToRemove.forEach(this::removeComponent);
 	}
 
 	public void clearAll() {

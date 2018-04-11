@@ -2,7 +2,7 @@ package com.fo0.advancedtokenfield.model;
 
 import java.io.Serializable;
 
-public class Token implements Serializable {
+public class Token implements Serializable, Comparable<Token> {
 
 	private static final long serialVersionUID = -7438343157114436699L;
 
@@ -67,4 +67,8 @@ public class Token implements Serializable {
 				+ "]";
 	}
 
+	@Override
+	public int compareTo(Token o) {
+		return this.value.compareTo(o.value);
+	}
 }

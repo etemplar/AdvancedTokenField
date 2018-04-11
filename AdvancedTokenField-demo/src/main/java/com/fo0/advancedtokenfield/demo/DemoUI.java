@@ -1,9 +1,5 @@
 package com.fo0.advancedtokenfield.demo;
 
-import java.util.Arrays;
-
-import javax.servlet.annotation.WebServlet;
-
 import com.fo0.advancedtokenfield.interceptor.TokenNewItemInterceptor;
 import com.fo0.advancedtokenfield.interceptor.TokenRemoveInterceptor;
 import com.fo0.advancedtokenfield.main.AdvancedTokenField;
@@ -15,12 +11,13 @@ import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.shared.communication.PushMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Notification.Type;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
+
+import javax.servlet.annotation.WebServlet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Theme("demo")
 @Title("AdvancedTokenField Add-on Demo")
@@ -39,8 +36,17 @@ public class DemoUI extends UI {
 
 	@Override
 	protected void init(VaadinRequest request) {
-		tokenField = new AdvancedTokenField();
-		tokenField.setQuerySuggestionInputMinLength(0);
+		Token token1 = new Token("One");
+		Token token2 = new Token("Two");
+		Token token3 = new Token("Three");
+		List<Token> tokens = new ArrayList<>();
+		tokens.add(token1);
+		tokens.add(token2);
+		tokens.add(token3);
+
+		tokenField = new AdvancedTokenField("Awesome caption", tokens);
+		tokenField.addStyleName("v-vertical-layout");
+		tokenField.setWidth("200px");
 		// allow new items to be added to layout-tokens and combobox
 		tokenField.setAllowNewItems(true);
 
@@ -61,12 +67,12 @@ public class DemoUI extends UI {
 
 		// adding tokens to combobox
 		tokenField.addTokenToInputField(new Token("Token1"));
-		tokenField.addTokensToInputField(Arrays.asList(new Token[] { new Token("Token2"), new Token("Token3") }));
+		tokenField.addTokensToInputField(Arrays.asList(new Token("Token2"), new Token("Token3")));
 
 		// adding tokens to layout directly (adding to combobox cache too, if
 		// not existing)
 		tokenField.addToken(new Token("token4", "green"));
-		tokenField.addTokens(Arrays.asList(new Token[] { new Token("Token5"), new Token("Token6") }));
+		tokenField.addTokens(Arrays.asList(new Token("Token5"), new Token("Token6")));
 
 		// to override defaults
 		tokenField.addTokenAddInterceptor(token -> {
