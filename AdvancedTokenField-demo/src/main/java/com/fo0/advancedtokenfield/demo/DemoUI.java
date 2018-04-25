@@ -1,7 +1,5 @@
 package com.fo0.advancedtokenfield.demo;
 
-import com.fo0.advancedtokenfield.interceptor.TokenNewItemInterceptor;
-import com.fo0.advancedtokenfield.interceptor.TokenRemoveInterceptor;
 import com.fo0.advancedtokenfield.main.AdvancedTokenField;
 import com.fo0.advancedtokenfield.model.Token;
 import com.vaadin.annotations.Push;
@@ -31,20 +29,20 @@ public class DemoUI extends UI {
 	}
 
 	private VerticalLayout root;
-	private AdvancedTokenField tokenField;
+	private AdvancedTokenField<TokenDto> tokenField;
 	private VerticalLayout debugLayout;
 
 	@Override
 	protected void init(VaadinRequest request) {
-		Token token1 = new Token("One");
-		Token token2 = new Token("Two");
-		Token token3 = new Token("Three");
-		List<Token> tokens = new ArrayList<>();
+		TokenDto token1 = new TokenDto("One");
+		TokenDto token2 = new TokenDto("Two");
+		TokenDto token3 = new TokenDto("Three");
+		List<TokenDto> tokens = new ArrayList<>();
 		tokens.add(token1);
 		tokens.add(token2);
 		tokens.add(token3);
 
-		tokenField = new AdvancedTokenField("Awesome caption", tokens);
+		tokenField = new AdvancedTokenField<>("Awesome caption", tokens);
 		tokenField.addStyleName("v-vertical-layout");
 		tokenField.setWidth("200px");
 		// allow new items to be added to layout-tokens and combobox
@@ -63,16 +61,16 @@ public class DemoUI extends UI {
 		// clearing visible token in layout
 		tokenField.clearTokens();
 		// clearing tokens in combobox
-		tokenField.getTokensOfInputField().clear();
+		tokenField.getAddedDtos().clear();
 
 		// adding tokens to combobox
-		tokenField.addTokenToInputField(new Token("Token1"));
-		tokenField.addTokensToInputField(Arrays.asList(new Token("Token2"), new Token("Token3")));
+		tokenField.addDtoToList(new TokenDto("Token1"));
+		tokenField.addDtosToList(Arrays.asList(new TokenDto("Token2"), new TokenDto("Token3")));
 
 		// adding tokens to layout directly (adding to combobox cache too, if
 		// not existing)
-		tokenField.addToken(new Token("token4", "green"));
-		tokenField.addTokens(Arrays.asList(new Token("Token5"), new Token("Token6")));
+		tokenField.addToken(new Token<>(new TokenDto("token4"), "green"));
+		tokenField.addTokens(Arrays.asList(new Token<>(new TokenDto("Token5")), new Token<>(new TokenDto("Token6"))));
 
 		// to override defaults
 		tokenField.addTokenAddInterceptor(token -> {
@@ -81,13 +79,13 @@ public class DemoUI extends UI {
 		});
 
 		// to override defaults
-		tokenField.addTokenAddNewItemInterceptor((TokenNewItemInterceptor) value -> {
+		tokenField.addTokenAddNewItemInterceptor(value -> {
 			Notification.show(value.getClass().getSimpleName(), "Add New Token: " + value, Type.TRAY_NOTIFICATION);
 			return value;
 		});
 
 		// to override defaults
-		tokenField.addTokenRemoveInterceptor((TokenRemoveInterceptor) removeEvent -> {
+		tokenField.addTokenRemoveInterceptor(removeEvent -> {
 			Notification.show(removeEvent.getClass().getSimpleName(), "Removing Token: " + removeEvent,
 					Type.HUMANIZED_MESSAGE);
 			return removeEvent;
@@ -117,6 +115,6 @@ public class DemoUI extends UI {
 		debugLayout.addComponent(new Label("------inputfield-------"));
 
 		// output of available tokens in inputfield
-		tokenField.getTokensOfInputField().forEach(e -> debugLayout.addComponent(new Label(e.toString())));
+		tokenField.getAddedDtos().forEach(e -> debugLayout.addComponent(new Label(e.toString())));
 	}
 }

@@ -6,6 +6,7 @@ import com.fo0.advancedtokenfield.interceptor.TokenRemoveInterceptor;
 import com.fo0.advancedtokenfield.listener.OnEnterListener;
 import com.fo0.advancedtokenfield.listener.TokenAddListener;
 import com.fo0.advancedtokenfield.listener.TokenRemoveListener;
+import com.fo0.advancedtokenfield.model.ITokenItem;
 import com.fo0.advancedtokenfield.model.Token;
 import com.fo0.advancedtokenfield.model.TokenLayout;
 import com.vaadin.data.HasValue;
@@ -16,35 +17,32 @@ import com.vaadin.ui.CssLayout;
 import fi.jasoft.dragdroplayouts.DDCssLayout;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-public class AdvancedTokenField extends DDCssLayout {
+public class AdvancedTokenField<F extends ITokenItem> extends DDCssLayout {
 
 	private static final long serialVersionUID = 8139678186130686248L;
 
-	private ComboBox<Token> inputField = null;
+	private ComboBox<F> inputField = null;
 
-	private List<Token> tokensOfField = new ArrayList<>();
+	private List<F> initInputFieldDtos = new ArrayList<>();
+	private List<F> addedDtos = new ArrayList<>();
 
 	/**
 	 * Interceptors
 	 */
-	private TokenRemoveInterceptor tokenRemoveInterceptor;
-	private TokenAddInterceptor tokenAddInterceptor;
-	private TokenNewItemInterceptor tokenNewItemInterceptor;
+	private TokenRemoveInterceptor<F> tokenRemoveInterceptor;
+	private TokenAddInterceptor<F> tokenAddInterceptor;
+	private TokenNewItemInterceptor<F> tokenNewItemInterceptor;
 
 	/**
 	 * Listener
 	 */
-	private TokenRemoveListener tokenRemoveListener;
-	private TokenAddListener tokenAddListener;
+	private TokenRemoveListener<F> tokenRemoveListener;
+	private TokenAddListener<F> tokenAddListener;
 
-	private OnEnterListener enterListener;
+	private OnEnterListener<F> enterListener;
 
 	private boolean allowNewTokens = false;
 	private boolean allowEmptyValues = false;
@@ -56,13 +54,13 @@ public class AdvancedTokenField extends DDCssLayout {
 		this(caption, null);
 	}
 
-	public AdvancedTokenField(List<Token> tokens) {
+	public AdvancedTokenField(List<F> tokens) {
 		this(null, tokens);
 	}
 
-	public AdvancedTokenField(String caption, List<Token> tokens) {
+	public AdvancedTokenField(String caption, List<F> tokens) {
 		if (tokens != null && !tokens.isEmpty())
-			this.tokensOfField.addAll(tokens);
+			this.initInputFieldDtos.addAll(tokens);
 		init();
 		if(caption != null)
 			inputField.setCaption(caption);
@@ -77,45 +75,23 @@ public class AdvancedTokenField extends DDCssLayout {
 
 		inputField = new ComboBox<>();
 
-		inputField.setItemCaptionGenerator(Token::getValue);
-		inputField.setItems(tokensOfField);
+        inputField.setItemCaptionGenerator(ITokenItem::getStrRepresentation);
+        inputField.setItems(initInputFieldDtos);
 
-
-		inputField.addValueChangeListener(new HasValue.ValueChangeListener<Token>() {
-			@Override
-			public void valueChange(HasValue.ValueChangeEvent<Token> event) {
-				if(event.getValue() != null) {
-					Token token = event.getValue();
-					addToken(token);
-				}
-			}
-		});
+		inputField.addValueChangeListener((HasValue.ValueChangeListener<F>) event -> {
+            if(event.getValue() != null){
+                Token<F> token = new Token<>(event.getValue());
+                addToken(token);
+            }
+        });
 
 		addComponent(inputField);
 
-		tokenAddInterceptor = new TokenAddInterceptor() {
+		tokenAddInterceptor = token -> token;
 
-			@Override
-			public Token action(Token token) {
-				return token;
-			}
-		};
+		tokenRemoveInterceptor = event -> event;
 
-		tokenRemoveInterceptor = new TokenRemoveInterceptor() {
-
-			@Override
-			public Token action(Token event) {
-				return event;
-			}
-		};
-
-		tokenNewItemInterceptor = new TokenNewItemInterceptor() {
-
-			@Override
-			public Token action(Token token) {
-				return token;
-			}
-		};
+		tokenNewItemInterceptor = token -> token;
 	}
 
 	public void setAllowNewItems(boolean allow) {
@@ -185,8 +161,8 @@ public class AdvancedTokenField extends DDCssLayout {
 		super.addComponent(c, index);
 	}
 
-	public void removeToken(Token token) {
-		Token tokenData = tokenRemoveInterceptor.action(token);
+	public void removeToken(Token<F> token) {
+		Token<F> tokenData = tokenRemoveInterceptor.action(token);
 
 		if (tokenData == null) {
 			// prevent remove if interceptor not allow
@@ -194,16 +170,15 @@ public class AdvancedTokenField extends DDCssLayout {
 		}
 
 		// search in layout and remove if found
-		TokenLayout tl = null;
-		for (Iterator<Component> iterator = iterator(); iterator.hasNext();) {
-			Component component = iterator.next();
-			if (component instanceof TokenLayout) {
-				if (((TokenLayout) component).getToken().equals(token)) {
-					tl = (TokenLayout) component;
-					break;
-				}
-			}
-		}
+		TokenLayout<F> tl = null;
+        for (Component component : this) {
+            if (component instanceof TokenLayout) {
+                if (((TokenLayout<F>) component).getToken().equals(token)) {
+                    tl = (TokenLayout<F>) component;
+                    break;
+                }
+            }
+        }
 
 		if (tl != null && tl.getToken() != null && tl.getToken().equals(tokenData)) {
 			super.removeComponent(tl);
@@ -213,26 +188,29 @@ public class AdvancedTokenField extends DDCssLayout {
 			tokenRemoveListener.action(tl);
 		}
 
-		tokensOfField.add(token);
-		Collections.sort(tokensOfField);
-		inputField.setItems(tokensOfField);
+        addedDtos.remove(token.getValue());
 	}
 
-	public void addToken(Token token, int idx) {
-		Token tokenData = tokenAddInterceptor.action(token);
+	public void addToken(Token<F> token, int idx) {
+		Token<F> tokenData = tokenAddInterceptor.action(token);
 		if (tokenData == null) {
 			// filter empty tokens
 			return;
 		}
 
-		TokenLayout tokenLayout = new TokenLayout(tokenData, tokenCloseButton);
+		if(addedDtos.contains(token.getValue())){
+		    inputField.clear();
+		    return;
+        }
+
+		TokenLayout<F> tokenLayout = new TokenLayout<F>(tokenData, tokenCloseButton);
 
 		if (tokenCloseButton)
 			tokenLayout.getBtn().addClickListener(e -> {
 				removeToken(tokenLayout.getToken());
 			});
 
-		addTokenToInputField(tokenData);
+		addDtoToList(tokenData.getValue());
 
 		if (idx > -1) {
 			super.addComponent(tokenLayout, idx);
@@ -245,57 +223,59 @@ public class AdvancedTokenField extends DDCssLayout {
 			tokenAddListener.action(tokenData);
 
 		inputField.clear();
-		tokensOfField.remove(token);
-		inputField.setItems(tokensOfField);
 	}
 
-	public void addToken(Token token) {
+	public void addToken(Token<F> token) {
 		addToken(token, getComponentCount());
 	}
 
-	public void addTokens(List<Token> token) {
+	public void addTokens(List<Token<F>> token) {
 		token.forEach(this::addToken);
 	}
 
-	public ComboBox<Token> getInputField() {
+	public ComboBox<F> getInputField() {
 		return inputField;
 	}
 
-	public List<Token> getTokensOfInputField() {
-		return tokensOfField;
+	public List<F> getAddedDtos() {
+		return addedDtos;
 	}
 
-	public List<Token> getTokens() {
-		List<Token> list = new ArrayList<>();
+	public List<Token<F>> getTokens() {
+		List<Token<F>> list = new ArrayList<>();
 		for (int i = 0; i < getComponentCount(); i++) {
 			if (getComponent(i) instanceof CssLayout) {
 				CssLayout c = (CssLayout) getComponent(i);
-				Token t = (Token) c.getData();
+				Token<F> t = (Token<F>) c.getData();
 				list.add(t);
 			}
 		}
 		return list;
 	}
 
-	public void addTokensToInputField(List<Token> tokens) {
-		if (tokens == null || tokens.isEmpty())
+	public void addDtosToList(List<F> dtos) {
+		if (dtos == null || dtos.isEmpty())
 			return;
 
-		addTokensToInputField(tokens.toArray(new Token[0]));
+        addedDtos.addAll(dtos);
 	}
 
-	public void addTokensToInputField(Token... tokens) {
-		List<Token> list = Stream.of(tokens).distinct().filter(e -> !tokensOfField.contains(e))
-				.collect(Collectors.toList());
-		if (list == null || list.isEmpty())
-			return;
-
-		tokensOfField.addAll(list);
+	public void addDtoToList(F dto) {
+        addedDtos.add(dto);
 	}
 
-	public void addTokenToInputField(Token token) {
-		addTokensToInputField(token);
-	}
+    public void addDtosToInputField(List<F> dtos) {
+        if (dtos == null || dtos.isEmpty())
+            return;
+
+        initInputFieldDtos.addAll(dtos);
+        inputField.setItems(initInputFieldDtos);
+    }
+
+    public void addDtoToInputField(F dto) {
+        initInputFieldDtos.add(dto);
+        inputField.setItems(initInputFieldDtos);
+    }
 
 	public void clearTokens() {
 		List<Component> componentsToRemove = new ArrayList<>();
@@ -311,22 +291,22 @@ public class AdvancedTokenField extends DDCssLayout {
 
 	public void clearAll() {
 		clearTokens();
-		tokensOfField.clear();
+        addedDtos.clear();
 	}
 
 	/**
 	 * Listener
 	 */
 
-	public void addTokenRemoveListener(TokenRemoveListener listener) {
+	public void addTokenRemoveListener(TokenRemoveListener<F> listener) {
 		this.tokenRemoveListener = listener;
 	}
 
-	public void addTokenAddListener(TokenAddListener listener) {
+	public void addTokenAddListener(TokenAddListener<F> listener) {
 		this.tokenAddListener = listener;
 	}
 
-	public void addOnEnterListener(OnEnterListener listener) {
+	public void addOnEnterListener(OnEnterListener<F> listener) {
 		enterListener = listener;
 	}
 
@@ -334,15 +314,15 @@ public class AdvancedTokenField extends DDCssLayout {
 	 * Interceptors
 	 */
 
-	public void addTokenRemoveInterceptor(TokenRemoveInterceptor interceptor) {
+	public void addTokenRemoveInterceptor(TokenRemoveInterceptor<F> interceptor) {
 		this.tokenRemoveInterceptor = interceptor;
 	}
 
-	public void addTokenAddInterceptor(TokenAddInterceptor interceptor) {
+	public void addTokenAddInterceptor(TokenAddInterceptor<F> interceptor) {
 		this.tokenAddInterceptor = interceptor;
 	}
 
-	public void addTokenAddNewItemInterceptor(TokenNewItemInterceptor interceptor) {
+	public void addTokenAddNewItemInterceptor(TokenNewItemInterceptor<F> interceptor) {
 		this.tokenNewItemInterceptor = interceptor;
 	}
 

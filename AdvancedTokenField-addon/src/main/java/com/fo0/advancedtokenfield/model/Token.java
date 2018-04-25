@@ -2,19 +2,19 @@ package com.fo0.advancedtokenfield.model;
 
 import java.io.Serializable;
 
-public class Token implements Serializable, Comparable<Token> {
+public class Token<T extends ITokenItem> implements Serializable {
 
 	private static final long serialVersionUID = -7438343157114436699L;
 
-	private String value;
+	private T value;
 	private String style;
 
-	public Token(String value) {
+	public Token(T value) {
 		super();
 		this.value = value;
 	}
 
-	public Token(String value, String style) {
+	public Token(T value, String style) {
 		super();
 		this.value = value;
 		this.style = style;
@@ -28,11 +28,11 @@ public class Token implements Serializable, Comparable<Token> {
 		this.style = style;
 	}
 
-	public String getValue() {
+	public T getValue() {
 		return value;
 	}
 
-	public void setValue(String value) {
+	public void setValue(T value) {
 		this.value = value;
 	}
 
@@ -67,8 +67,4 @@ public class Token implements Serializable, Comparable<Token> {
 				+ "]";
 	}
 
-	@Override
-	public int compareTo(Token o) {
-		return this.value.compareTo(o.value);
-	}
 }

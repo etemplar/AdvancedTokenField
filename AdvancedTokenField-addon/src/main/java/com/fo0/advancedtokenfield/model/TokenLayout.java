@@ -6,20 +6,18 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.themes.ValoTheme;
 
-public class TokenLayout extends CssLayout {
+public class TokenLayout<F extends ITokenItem> extends CssLayout {
 
 	private static final long serialVersionUID = 1818425531699295539L;
 
-	private Token token = null;
+	private Token<F> token = null;
 	private Label lbl = new Label();
 	private NativeButton btn = null;
 
-	public TokenLayout(Token token, boolean tokenCloseButton) {
+	public TokenLayout(Token<F> token, boolean tokenCloseButton) {
 		super();
 		this.token = token;
-		if (token != null) {
-			lbl.setValue(token.getValue());
-		}
+		lbl.setValue(token.getValue().getStrRepresentation());
 
 		setData(token);
 		addStyleName("flat");
@@ -54,11 +52,11 @@ public class TokenLayout extends CssLayout {
 		this.btn = btn;
 	}
 
-	public Token getToken() {
+	public Token<F> getToken() {
 		return token;
 	}
 
-	public void setToken(Token token) {
+	public void setToken(Token<F> token) {
 		this.token = token;
 	}
 
@@ -97,11 +95,8 @@ public class TokenLayout extends CssLayout {
 		} else if (!lbl.equals(other.lbl))
 			return false;
 		if (token == null) {
-			if (other.token != null)
-				return false;
-		} else if (!token.equals(other.token))
-			return false;
-		return true;
+			return other.token == null;
+		} else return token.equals(other.token);
 	}
 
 }

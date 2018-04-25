@@ -1,9 +1,10 @@
 package com.fo0.advancedtokenfield.interceptor;
 
+import com.fo0.advancedtokenfield.model.ITokenItem;
 import com.fo0.advancedtokenfield.model.Token;
 
-public interface TokenRemoveInterceptor {
+public interface TokenRemoveInterceptor<F extends ITokenItem> {
 
-	Token action(Token event);
+	Token<F> action(Token<F> event);
 
 }
