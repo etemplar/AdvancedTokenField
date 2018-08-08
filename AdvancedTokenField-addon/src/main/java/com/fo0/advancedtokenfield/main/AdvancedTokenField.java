@@ -10,6 +10,7 @@ import com.fo0.advancedtokenfield.model.ITokenItem;
 import com.fo0.advancedtokenfield.model.Token;
 import com.fo0.advancedtokenfield.model.TokenLayout;
 import com.vaadin.data.HasValue;
+import com.vaadin.data.provider.DataProvider;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -18,6 +19,7 @@ import fi.jasoft.dragdroplayouts.DDCssLayout;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 public class AdvancedTokenField<F extends ITokenItem> extends DDCssLayout {
@@ -44,8 +46,6 @@ public class AdvancedTokenField<F extends ITokenItem> extends DDCssLayout {
 
 	private OnEnterListener<F> enterListener;
 
-	private boolean allowNewTokens = false;
-	private boolean allowEmptyValues = false;
 	private boolean tokenCloseButton = true;
 
 	private static final String BASE_STYLE = "advancedtokenfield-layouttokens";
@@ -74,6 +74,7 @@ public class AdvancedTokenField<F extends ITokenItem> extends DDCssLayout {
 		addStyleName(BASE_STYLE);
 
 		inputField = new ComboBox<>();
+		inputField.setSizeFull();
 
         inputField.setItemCaptionGenerator(ITokenItem::getStrRepresentation);
         inputField.setItems(initInputFieldDtos);
@@ -94,12 +95,29 @@ public class AdvancedTokenField<F extends ITokenItem> extends DDCssLayout {
 		tokenNewItemInterceptor = token -> token;
 	}
 
-	public void setAllowNewItems(boolean allow) {
-		this.allowNewTokens = allow;
-	}
+	public void setDataProvider(DataProvider<F, String> dataProvider){
+	    inputField.setDataProvider(dataProvider);
+    }
 
-	public void setAllowEmptyValues(boolean allow) {
-		this.allowNewTokens = allow;
+	public void setAllowNewItems() {
+		inputField.setNewItemProvider((ComboBox.NewItemProvider<F>) s -> {
+
+		    ITokenItem iTokenItem = new ITokenItem() {
+                @Override
+                public String getStrRepresentation() {
+                    return s;
+                }
+
+                @Override
+                public Object getDbRepresentation() {
+                    return s;
+                }
+            };
+
+            Token token = new Token<>(iTokenItem);
+            addToken(token);
+            return Optional.empty();
+        });
 	}
 
 	public void setTokenCloseButton(boolean tokenCloseButton) {
