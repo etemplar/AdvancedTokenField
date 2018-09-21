@@ -46,7 +46,7 @@ public class DemoUI extends UI {
 		tokenField.addStyleName("v-vertical-layout");
 		tokenField.setWidth("200px");
 		// allow new items to be added to layout-tokens and combobox
-		tokenField.setAllowNewItems(true);
+		tokenField.setAllowNewItems();
 
 		Button btn = new Button("Toggle Token close button");
 		btn.addClickListener(e -> {
@@ -115,6 +115,8 @@ public class DemoUI extends UI {
 		debugLayout.addComponent(new Label("------inputfield-------"));
 
 		// output of available tokens in inputfield
-		tokenField.getAddedDtos().forEach(e -> debugLayout.addComponent(new Label(e.toString())));
+//		for (TokenDto e : tokenField.getAddedDtos()) {
+//			debugLayout.addComponent(new Label(e.toString()));
+//		}
 	}
 }

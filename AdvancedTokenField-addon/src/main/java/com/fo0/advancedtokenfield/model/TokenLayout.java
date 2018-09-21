@@ -1,16 +1,14 @@
 package com.fo0.advancedtokenfield.model;
 
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.NativeButton;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
-public class TokenLayout<F extends ITokenItem> extends CssLayout {
+public class TokenLayout<F extends ITokenItem> extends HorizontalLayout {
 
 	private static final long serialVersionUID = 1818425531699295539L;
 
-	private Token<F> token = null;
+	private Token<F> token;
 	private Label lbl = new Label();
 	private NativeButton btn = null;
 
@@ -22,6 +20,9 @@ public class TokenLayout<F extends ITokenItem> extends CssLayout {
 		setData(token);
 		addStyleName("flat");
 		addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
+		setWidth("90%");
+		setMargin(false);
+		setSpacing(false);
 
 		if (token.getStyle() != null && !token.getStyle().isEmpty())
 			addStyleName(token.getStyle());
@@ -29,12 +30,18 @@ public class TokenLayout<F extends ITokenItem> extends CssLayout {
 		if (tokenCloseButton) {
 			btn = new NativeButton();
 			btn.setIcon(VaadinIcons.CLOSE);
+			btn.setWidth(null);
+			lbl.setWidth("100%");
 			addComponents(lbl, btn);
+			setComponentAlignment(btn, Alignment.MIDDLE_RIGHT);
+            setComponentAlignment(lbl, Alignment.MIDDLE_LEFT);
+            setExpandRatio(lbl, 1.0f);
 		} else {
-			addComponents(lbl);
-		}
+            addComponents(lbl);
+        }
 
-	}
+       lbl.addStyleName("cut_text");
+    }
 
 	public Label getLbl() {
 		return lbl;

@@ -1,13 +1,9 @@
 .advancedtokenfield-layouttokens .v-component-group {
-	margin: 1px 2.5px;
+	margin: 1px 1px 1px 1px;
 	background: #1E88E5;
 	color: white;
 	border-radius: 2px;
-	padding: 4px 10px;
-}
-
-.advancedtokenfield-layouttokens>:nth-last-child(-n+2) {
-	margin-right: 5px !important;
+	padding: 4px 4px;
 }
 
 .advancedtokenfield-layouttokens .v-component-group .v-label {
@@ -21,7 +17,6 @@
 	color: white;
 	cursor: pointer;
 	transition: background 0.3s, color 0.3s;
-	margin-left: 8px;
 	padding: 0;
 }
 
@@ -33,4 +28,10 @@
 
 .advancedtokenfield-layouttokens .v-nativebutton-caption {
 	display: none !important;
+}
+
+.advancedtokenfield-layouttokens .cut_text {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }

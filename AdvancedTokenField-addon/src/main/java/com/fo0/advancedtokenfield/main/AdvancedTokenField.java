@@ -12,17 +12,14 @@ import com.fo0.advancedtokenfield.model.TokenLayout;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.shared.Registration;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CssLayout;
-import fi.jasoft.dragdroplayouts.DDCssLayout;
+import com.vaadin.ui.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-public class AdvancedTokenField<F extends ITokenItem> extends DDCssLayout {
+public class AdvancedTokenField<F extends ITokenItem> extends VerticalLayout {
 
 	private static final long serialVersionUID = 8139678186130686248L;
 
@@ -70,8 +67,11 @@ public class AdvancedTokenField<F extends ITokenItem> extends DDCssLayout {
 		init();
 	}
 
-	private void init() {
+    private void init() {
 		addStyleName(BASE_STYLE);
+
+		setMargin(false);
+		setSpacing(false);
 
 		inputField = new ComboBox<>();
 		inputField.setSizeFull();
@@ -224,9 +224,7 @@ public class AdvancedTokenField<F extends ITokenItem> extends DDCssLayout {
 		TokenLayout<F> tokenLayout = new TokenLayout<F>(tokenData, tokenCloseButton);
 
 		if (tokenCloseButton)
-			tokenLayout.getBtn().addClickListener(e -> {
-				removeToken(tokenLayout.getToken());
-			});
+			tokenLayout.getBtn().addClickListener(e -> removeToken(tokenLayout.getToken()));
 
 		addDtoToList(tokenData.getValue());
 
@@ -234,8 +232,9 @@ public class AdvancedTokenField<F extends ITokenItem> extends DDCssLayout {
 			super.addComponent(tokenLayout, idx);
 		} else {
 			super.addComponent(tokenLayout, getComponentCount() - 1);
-
 		}
+
+		setComponentAlignment(tokenLayout, Alignment.TOP_LEFT);
 
 		if (tokenAddListener != null)
 			tokenAddListener.action(tokenData);

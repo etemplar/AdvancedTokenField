@@ -6,7 +6,7 @@
 	<groupId>com.fo0.advancedtokenfield</groupId>
 	<artifactId>AdvancedTokenField</artifactId>
 	<packaging>bundle</packaging>
-	<version>0.2.2c</version>
+	<version>0.2.3c</version>
 	<name>AdvancedTokenField Add-on</name>
 
 	<prerequisites>
@@ -32,14 +32,6 @@
 		<Vaadin-License-Title>Apache License 2.0</Vaadin-License-Title>
 		<Vaadin-Addon>${project.artifactId}-${project.version}.jar</Vaadin-Addon>
 	</properties>
-
-	<!-- <organization> <name>My Name</name> <url>https://github.com/mygithubaccount/AdvancedTokenField/</url> 
-		</organization> <scm> <url>git://github.com/mygithubaccount/AdvancedTokenField.git</url> 
-		<connection>scm:git:git://github.com/mygithubaccount/AdvancedTokenField.git</connection> 
-		<developerConnection>scm:git:ssh://git@github.com:/mygithubaccount/${componentClassName}.git</developerConnection> 
-		<tag>AdvancedTokenField add-on for Vaadin</tag> </scm> <issueManagement> 
-		<system>GitHub</system> <url>https://github.com/mygithubaccount/AdvancedTokenField/issues</url> 
-		</issueManagement> -->
 
 	<licenses>
 		<license>
@@ -78,13 +70,6 @@
 			<scope>test</scope>
 		</dependency>
 
-
-		<!-- just for right now, creating this layout later with vaadin 8 components -->
-		<dependency>
-			<groupId>org.vaadin.addons</groupId>
-			<artifactId>dragdroplayouts</artifactId>
-			<version>1.4.2</version>
-		</dependency>
 		<dependency>
 			<groupId>com.vaadin</groupId>
 			<artifactId>vaadin-compatibility-server</artifactId>
