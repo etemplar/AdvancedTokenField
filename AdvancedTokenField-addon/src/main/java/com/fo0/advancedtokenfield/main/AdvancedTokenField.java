@@ -261,8 +261,8 @@ public class AdvancedTokenField<F extends ITokenItem> extends VerticalLayout {
 	public List<Token<F>> getTokens() {
 		List<Token<F>> list = new ArrayList<>();
 		for (int i = 0; i < getComponentCount(); i++) {
-			if (getComponent(i) instanceof CssLayout) {
-				CssLayout c = (CssLayout) getComponent(i);
+			if (getComponent(i) instanceof TokenLayout) {
+				TokenLayout<F> c = (TokenLayout<F>) getComponent(i);
 				Token<F> t = (Token<F>) c.getData();
 				list.add(t);
 			}
@@ -298,7 +298,7 @@ public class AdvancedTokenField<F extends ITokenItem> extends VerticalLayout {
 		List<Component> componentsToRemove = new ArrayList<>();
 
 		IntStream.range(0, getComponentCount()).forEach(e -> {
-			if (getComponent(e) instanceof CssLayout) {
+			if (getComponent(e) instanceof TokenLayout) {
 				componentsToRemove.add(getComponent(e));
 			}
 		});
